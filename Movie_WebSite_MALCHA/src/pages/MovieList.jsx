@@ -20,10 +20,10 @@ const MovieList = () => {
             <CategoryContainer>
                 <h2 style={{ color: 'white', marginLeft: '15px' }}>카테고리</h2>
                 <ImageContainer>
-                    <ImageItem to = '/NowPlaying' src = '/now.jpg' alt = 'description1'/>
-                    <ImageItem to = '/PopularPlaying' src = '/popular.jpg' alt = 'description2' />
-                    <ImageItem to = '/PrizedPlaying' src = '/prize.jpg' alt = 'description3' />
-                    <ImageItem to = '/UpcomingPlaying' src = '/soon.jpg' alt = 'description4' />
+                    <ImageItem to = '/NowPlaying' src = '/now.jpg' alt = '현재상영작'/>
+                    <ImageItem to = '/PopularPlaying' src = '/popular.jpg' alt = '인기작' />
+                    <ImageItem to = '/PrizedPlaying' src = '/prize.jpg' alt = '우수작' />
+                    <ImageItem to = '/UpcomingPlaying' src = '/soon.jpg' alt = '개봉예정작' />
                 </ImageContainer>
             </CategoryContainer>
         </>

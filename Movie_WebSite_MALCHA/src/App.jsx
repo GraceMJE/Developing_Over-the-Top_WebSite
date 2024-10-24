@@ -7,6 +7,7 @@ import SignUp from './pages/SignUp';
 import Login from './pages/Login';
 import Search from './pages/Search';
 import MovieList from './pages/MovieList';
+import MovieDescription from './pages/MovieDescription';
 import NowPlaying from './movie-pages/nowPlaying';
 import UpcomingPlaying from './movie-pages/UpcomingPlaying';
 import PopularPlaying from './movie-pages/PopularPlaying';
@@ -55,6 +56,10 @@ const router = createBrowserRouter([
           {
             path: 'MovieList',
             element: <MovieList/>
+          },
+          {
+            path: 'MovieDescription/:movieId',
+            element: <MovieDescription/>
           },
           {
             path: 'NowPlaying',

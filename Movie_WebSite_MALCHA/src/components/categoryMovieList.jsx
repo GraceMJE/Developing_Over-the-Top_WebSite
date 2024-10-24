@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import styled from 'styled-components';
 
@@ -21,31 +22,31 @@ const MovieTitle = styled.p`
     font-size: 8px;
     font-weight: bolder;
     letter-spacing: -0.8px;
-    margin-block-start: 0em;
-    margin-block-end: 0em;
+    margin: 0;
 `;
 
 const ReleaseDate = styled.p`
     font-family: monospace;
     font-size: 8px; 
-    margin-block-start: 0em;
-    margin-block-end: 0em;
+    margin: 0;
 `;
 
 const CardView = styled.div`
-    display: flex; // 수정된 부분
+    display: flex;
     flex-direction: column;
     justify-content: center;
     color: white;
     margin-bottom: 27px;
+    cursor: pointer; // 커서 스타일 추가
 `;
 
-const CategoryMovieList = ({ fetchURL, sourceURL }) => {
-    const [movies, setMovies] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+// Custom Hook
+const useFetchMovies = (fetchURL) => {
+    const [movies, setMovies] = React.useState([]);
+    const [loading, setLoading] = React.useState(true);
+    const [error, setError] = React.useState(null);
 
-    useEffect(() => {
+    React.useEffect(() => {
         const fetchMovies = async () => {
             try {
                 const response = await axios.get(fetchURL);
@@ -58,7 +59,19 @@ const CategoryMovieList = ({ fetchURL, sourceURL }) => {
         };
 
         fetchMovies();
-    }, [fetchURL]); // fetchUrl 추가
+    }, [fetchURL]);
+
+    return { movies, loading, error };
+};
+
+// CategoryMovieList Component
+const CategoryMovieList = ({ fetchURL, sourceURL }) => {
+    const { movies, loading, error } = useFetchMovies(fetchURL);
+    const navigate = useNavigate(); // useNavigate 훅 사용
+
+    const handleMovieClick = (movieId) => {
+        navigate(`/MovieDescription/${movieId}`); // 상세 페이지로 이동
+    };    
 
     if (loading) return <div>로딩 중...</div>;
     if (error) return <div>오류 발생: {error.message}</div>;
@@ -66,7 +79,7 @@ const CategoryMovieList = ({ fetchURL, sourceURL }) => {
     return (
         <MovieCardContainer>
             {movies.map(movie => (
-                <CardView key={movie.id}>
+                <CardView key={movie.id} onClick={() => handleMovieClick(movie.id)}>
                     <MovieImage src={sourceURL(movie.poster_path)} alt={movie.title} />
                     <MovieTitle>{movie.title}</MovieTitle>
                     <ReleaseDate>{movie.release_date}</ReleaseDate>
