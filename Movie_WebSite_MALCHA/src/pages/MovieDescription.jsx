@@ -149,7 +149,7 @@ const MovieDescription = () => {
     useEffect(() => {
         const fetchMovieDetails = async () => {
             try {
-                // 🩷☁️ credit 추가 ☁️🩷
+                // 🩷☁️ credit 추가(&append_to_response=credits) ☁️🩷
                 const response = await axios.get(`https://api.themoviedb.org/3/movie/${movieId}?api_key=${myAPIkey}&language=ko-KR&append_to_response=credits`);
                 if (!response.data || !response.data.title) {
                     throw new Error("유효한 영화 정보를 찾을 수 없습니다.");
