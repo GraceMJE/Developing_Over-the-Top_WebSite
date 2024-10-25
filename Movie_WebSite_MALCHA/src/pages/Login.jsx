@@ -62,7 +62,7 @@ const ErrorMessage = styled.p`
 
 const Login = () => {
     const schema = yup.object().shape({
-        email: yup.string().email().required('이메일을 입력해주세요.'),
+        email: yup.string().email('이메일 형식을 확인해주세요').required('이메일을 입력해주세요'),
         password: yup.string().min(8, '비밀번호는 8자 이상입니다').max(16, '비밀번호는 16자 이하입니다').required(),
     })
 
