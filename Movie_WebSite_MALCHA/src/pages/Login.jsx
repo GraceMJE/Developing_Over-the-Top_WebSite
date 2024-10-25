@@ -1,9 +1,7 @@
-import React from 'react';
-import {useForm} from 'react-hook-form';
-import * as yup from 'yup';
-import { yupResolver } from '@hookform/resolvers/yup';
-import styled from 'styled-components';
-
+import styled from "styled-components";
+import {useState} from "react";
+import useForm from "../hooks/use-form";
+import { validateLogin } from "../utils/validate";
 
 const LoginContainer = styled.div`
     display: flex;
@@ -56,41 +54,33 @@ const ErrorMessage = styled.p`
     font-family: monospace;
     font-size: 11px;
     margin:0;
-    margin-left: 3px;
+    margin-left: 1px;
     margin-bottom: 5px;
 `
 
 const Login = () => {
-    const schema = yup.object().shape({
-        email: yup.string().email('이메일 형식을 확인해주세요').required('이메일을 입력해주세요'),
-        password: yup.string().min(8, '비밀번호는 8자 이상입니다').max(16, '비밀번호는 16자 이하입니다').required(),
-    })
-
-    const {register, handleSubmit, formState: {errors, isValid}} = useForm({
-        resolver: yupResolver(schema),
-        mode: 'onChange', // 입력 필드의 변화에 따라 유효성을 체크합니다.
-        criteriaMode: 'all', // 모든 에러 메시지를 표시합니다.
+    const login = useForm({
+        initialValue: {
+            email: '',
+            password: '',
+        },
+        validate: validateLogin
     });
 
-    const onSubmit = (data) => {
-        console.log('폼 데이터 제출')
-        console.log(data);
+    const handlePressLogin = () => {
+        console.log(login.values.email, login.values,password)
     }
 
     return (
-        <>
-            <LoginContainer>
-                <form onSubmit = {handleSubmit(onSubmit)}>
-                    <LoginTitle>로그인</LoginTitle>
-                    <LoginBox input type={'email'} {...register("email")}/>
-                    <ErrorMessage style={{color: 'red'}}>{errors.email?.message}</ErrorMessage>
-                    <LoginBox type={'password'} {...register("password")}/>
-                    <ErrorMessage style={{color: 'red'}}>{errors.password?.message}</ErrorMessage>
-                    <LoginButton type='submit' disabled={!isValid}>로그인</LoginButton>
-                </form>
-            </LoginContainer>
-        </>
+        <LoginContainer>
+            <LoginTitle>로그인</LoginTitle>
+            <LoginBox type={'email'} placeholder={'이메일을 입력해주세요'} {...login.getTextInputProps('email')}/>
+            {login.touched.email && login.errors.email && <ErrorMessage>{login.errors.email}</ErrorMessage>}
+            <LoginBox type={'password'} placeholder={'비밀번호를 입력해주세요'} {...login.getTextInputProps('password')}/>
+            {login.touched.password && login.errors.password && <ErrorMessage>{login.errors.password}</ErrorMessage>}
+            <LoginButton onClick={handlePressLogin}>로그인</LoginButton>
+        </LoginContainer>
     );
-};
+}
 
 export default Login;
