@@ -61,7 +61,7 @@ const SignUp = () => {
             .min(8, '비밀번호는 8자 이상입니다')
             .max(16, '비밀번호는 16자 이하입니다')
             .required('비밀번호를 입력해주세요'),
-        confirmPassword: yup.string()
+        passwordCheck: yup.string()
             .oneOf([yup.ref('password'), null], '비밀번호가 일치하지 않습니다.')
             .required('비밀번호 확인을 입력해주세요'),
     });
@@ -87,8 +87,8 @@ const SignUp = () => {
                 <SignUpBox type='password' {...register("password")} placeholder="비밀번호를 입력하세요!(8~16자)" />
                 <ErrorMessage>{errors.password?.message}</ErrorMessage>
                 
-                <SignUpBox type='password' {...register("confirmPassword")} placeholder="비밀번호를 다시 입력하세요!" />
-                <ErrorMessage>{errors.confirmPassword?.message}</ErrorMessage>
+                <SignUpBox type='password' {...register("passwordCheck")} placeholder="비밀번호를 다시 입력하세요!" />
+                <ErrorMessage>{errors.passwordCheck?.message}</ErrorMessage>
                 
                 <SignUpButton type='submit' disabled={!isValid}>회원가입</SignUpButton>
             </form>
