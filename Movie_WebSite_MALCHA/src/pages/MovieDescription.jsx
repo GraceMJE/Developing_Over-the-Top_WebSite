@@ -102,16 +102,18 @@ const CastContainer = styled.div`
     max-height: 250px;
 `;
 
-// 감독님 및 배역들 상세정보 칸
+// 감독님 및 배역들 상세정보 칸_revision with 성원님
 const CastInformationContainer = styled.div`
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    color: white;
+    display: block;
+    // flex-direction: column;
+    // justify-content: center;
+    // color: white;
     margin-bottom: 30px;
-    width: auto;
+    // width: auto;
+    text-align: center;
 `
 const CastMemberImage = styled.img`
+    // display: block;
     border-radius: 50%;
     border: 2px solid white;
     width: 70px;
@@ -122,7 +124,7 @@ const CastMemberImage = styled.img`
     
     text-align: center;
     background-image: url(${props => props.src});
-    margin: 0;
+    margin: 0 auto;
 `;
 const CastName = styled.p`
     font-size: 8px;
@@ -130,14 +132,14 @@ const CastName = styled.p`
     margin: 0;
     margin-top: 7px;
     margin-left: 0;
-    text-align: center;
+    // text-align: center;
 `;
 const CastRole = styled.p`
     font-size: 7px;
     color: gray;
     margin: 0;
     margin-top: 3px;
-    text-align: center;
+    // text-align: center;
 `;
 
 const MovieDescription = () => {
@@ -177,9 +179,11 @@ const MovieDescription = () => {
     return (
         <Container>
             <Header>
-                <BackgroundImage src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`} />
+                {/* backdrop_path ➡️ 포스터 전체 보임 */}
+                <BackgroundImage src={`https://image.tmdb.org/t/p/original${movie.poster_path}`} />
                 <GradationEffect />
                 <DescriptionText>
+                    {/* tagline 쓰면 소제목 ! */}
                     <MovieTitle>{movie.title}</MovieTitle>
                     <MovieInformation>📆 {movie.release_date}</MovieInformation>
                     <MovieInformation>⭐ {movie.vote_average}</MovieInformation>

@@ -68,8 +68,8 @@ const Login = () => {
 
     const {register, handleSubmit, formState: {errors, isValid}} = useForm({
         resolver: yupResolver(schema),
-        mode: 'onChange', // 입력 필드의 변화에 따라 유효성을 체크합니다.
-        criteriaMode: 'all', // 모든 에러 메시지를 표시합니다.
+        mode: 'onChange', // 입력 필드의 변화에 따라 유효성을 체크
+        criteriaMode: 'all', // 모든 에러 메시지를 표시
     });
 
     const onSubmit = (data) => {

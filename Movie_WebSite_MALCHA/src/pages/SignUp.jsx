@@ -67,6 +67,7 @@ const SignUp = () => {
     });
 
     const { register, handleSubmit, formState: { errors, isValid } } = useForm({
+        // yup 연결
         resolver: yupResolver(schema),
         mode: 'onChange',
         criteriaMode: 'all',
