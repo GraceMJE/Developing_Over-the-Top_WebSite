@@ -1,26 +1,31 @@
-import React from 'react';
-import {useForm} from 'react-hook-form';
+import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
+import { useNavigate } from 'react-router-dom'; // useNavigate 훅 import
+import { useAuth } from '../context/AuthContext'; // useAuth import
 import styled from 'styled-components';
-
 
 const LoginContainer = styled.div`
     display: flex;
     flex-direction: column;
     align-items: center;
-    // justify-content: center; - 수직(위아래)중앙
     margin-top: 5%;
-    height: 100vh; 
+    height: 100vh;
+`;
+
+const Form = styled.form`
+    display: flex;
+    flex-direction: column;
 `;
 
 const LoginTitle = styled.h1`
     margin-bottom: 18px;
-    font-family: monospace; 
+    font-family: monospace;
     color: white;
     font-size: 21px;
     text-align: center;
-`
+`;
 
 const LoginBox = styled.input`
     width: 280px;
@@ -31,65 +36,118 @@ const LoginBox = styled.input`
     margin: 6px 0;
     font-size: 12px;
     font-family: monospace;
-`
+`;
 
 const LoginButton = styled.button`
     width: 302px;
     height: 42px;
     border-radius: 11px;
-
-    // 로그인 입력칸 조건 충분하지 않을 경우 버튼 색상 GREY로 설정
-    background-color: ${({ disabled }) => (disabled ? 'gray':'#FF007F')};
-    // & 버튼 비활성화
-    cursor: ${({ disabled }) => (disabled ? 'not-allowed':'pointer')};
-
+    background-color: ${({ disabled }) => (disabled ? 'gray' : '#FF007F')};
+    cursor: ${({ disabled }) => (disabled ? 'not-allowed' : 'pointer')};
     text-align: center;
     font-size: 12px;
     font-family: monospace;
     letter-spacing: 3px;
     margin-top: 2.7px;
     color: white;
-`
+`;
 
 const ErrorMessage = styled.p`
     color: red;
     font-family: monospace;
     font-size: 11px;
-    margin:0;
+    margin: 0;
     margin-left: 3px;
     margin-bottom: 5px;
-`
+`;
 
 const Login = () => {
-    const schema = yup.object().shape({
-        email: yup.string().email('이메일 형식을 확인해주세요').required('이메일을 입력해주세요'),
-        password: yup.string().min(8, '비밀번호는 8자 이상입니다').max(16, '비밀번호는 16자 이하입니다').required(),
-    })
+    const navigate = useNavigate(); // useNavigate 훅 사용
+    const { login } = useAuth(); // 로그인 상태 변경 함수 가져오기
 
-    const {register, handleSubmit, formState: {errors, isValid}} = useForm({
-        resolver: yupResolver(schema),
-        mode: 'onChange', // 입력 필드의 변화에 따라 유효성을 체크
-        criteriaMode: 'all', // 모든 에러 메시지를 표시
+    // yup 스키마 정의
+    const schema = yup.object().shape({
+        email: yup
+            .string()
+            .email('이메일 형식을 확인해주세요')
+            .required('이메일을 입력해주세요'),
+        password: yup
+            .string()
+            .min(8, '비밀번호는 8자 이상이어야 합니다.')
+            .required('비밀번호를 입력해주세요'),
     });
 
-    const onSubmit = (data) => {
-        console.log('폼 데이터 제출')
-        console.log(data);
-    }
+    // react-hook-form 설정
+    const { register, handleSubmit, formState: { errors, isValid } } = useForm({
+        resolver: yupResolver(schema),
+        mode: 'onChange',
+    });
+
+    const [loading, setLoading] = useState(false); // 로딩 상태
+    const [serverError, setServerError] = useState(null); // 서버 에러 상태
+
+    // 폼 제출 처리 함수
+    const onSubmit = async (data) => {
+        // 로딩 상태 시작
+        setLoading(true);
+        setServerError(null); // 이전 에러 초기화
+
+        try {
+            const response = await fetch('http://localhost:3000/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data), // 사용자로부터 입력받은 데이터
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                // 로그인 성공 후, login 함수 호출하여 userName 설정
+                login({ name: data.email.split('@')[0], token: result.token }); // 이메일 앞부분을 사용자 이름으로 설정
+                alert('로그인 성공!');
+                navigate('/Home'); // 로그인 후 홈 화면으로 이동
+            } else {
+                setServerError(result.message || '로그인에 실패했습니다.');
+            }
+        } catch (error) {
+            setServerError('서버와의 연결에 문제가 발생했습니다. 다시 시도해주세요.');
+        } finally {
+            setLoading(false); // 로딩 종료
+        }
+    };
 
     return (
-        <>
-            <LoginContainer>
-                <form onSubmit = {handleSubmit(onSubmit)}>
-                    <LoginTitle>로그인</LoginTitle>
-                    <LoginBox input type={'email'} {...register("email")}/>
-                    <ErrorMessage style={{color: 'red'}}>{errors.email?.message}</ErrorMessage>
-                    <LoginBox type={'password'} {...register("password")}/>
-                    <ErrorMessage style={{color: 'red'}}>{errors.password?.message}</ErrorMessage>
-                    <LoginButton type='submit' disabled={!isValid}>로그인</LoginButton>
-                </form>
-            </LoginContainer>
-        </>
+        <LoginContainer>
+            <Form onSubmit={handleSubmit(onSubmit)}>
+                <LoginTitle>로그인</LoginTitle>
+
+                {/* 이메일 입력 */}
+                <LoginBox
+                    type="email"
+                    {...register('email')}
+                    placeholder="이메일을 입력하세요!"
+                />
+                {errors.email && <ErrorMessage>{errors.email.message}</ErrorMessage>}
+
+                {/* 비밀번호 입력 */}
+                <LoginBox
+                    type="password"
+                    {...register('password')}
+                    placeholder="비밀번호를 입력하세요!"
+                />
+                {errors.password && <ErrorMessage>{errors.password.message}</ErrorMessage>}
+
+                {/* 서버 에러 메시지 */}
+                {serverError && <ErrorMessage>{serverError}</ErrorMessage>}
+
+                {/* 로그인 버튼 */}
+                <LoginButton type="submit" disabled={!isValid || loading}>
+                    {loading ? '로그인 중✨' : '로그인'}
+                </LoginButton>
+            </Form>
+        </LoginContainer>
     );
 };
 

@@ -12,6 +12,7 @@ import NowPlaying from './movie-pages/nowPlaying';
 import UpcomingPlaying from './movie-pages/UpcomingPlaying';
 import PopularPlaying from './movie-pages/PopularPlaying';
 import PrizedPlaying from './movie-pages/PrizedPlaying';
+import { AuthProvider } from './context/AuthContext';
 
 // const GlobalStyle = createGlobalStyle`
 //   * {
@@ -38,7 +39,7 @@ const router = createBrowserRouter([
       element: <RootLayout />,
       children: [
           {
-            index: true,
+            path: 'Home',
             element: <Home/>
           },
           {
@@ -84,8 +85,10 @@ const router = createBrowserRouter([
 function App() {
   return (
     <>
-      {/* <GlobalStyle/> */}
-      <RouterProvider router={router} />
+      <AuthProvider>
+        {/* <GlobalStyle/> */}
+        <RouterProvider router={router} />
+      </AuthProvider>
     </>
   );
 };
