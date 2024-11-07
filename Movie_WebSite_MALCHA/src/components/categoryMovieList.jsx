@@ -37,10 +37,16 @@ const CardView = styled.div`
     justify-content: center;
     color: white;
     margin-bottom: 27px;
-    cursor: pointer; // 커서 스타일 추가
+    cursor: pointer;
 `;
 
-// Custom Hook
+const NoResultsMessage = styled.div`
+  font-size: 18px;
+  color: white;
+  text-align: center;
+  margin-top: 20px;
+`;
+
 const useFetchMovies = (fetchURL) => {
     const [movies, setMovies] = React.useState([]);
     const [loading, setLoading] = React.useState(true);
@@ -64,17 +70,24 @@ const useFetchMovies = (fetchURL) => {
     return { movies, loading, error };
 };
 
-// CategoryMovieList Component
-const CategoryMovieList = ({ fetchURL, sourceURL }) => {
+
+const CategoryMovieList = ({ fetchURL }) => {
     const { movies, loading, error } = useFetchMovies(fetchURL);
-    const navigate = useNavigate(); // useNavigate 훅 사용
+    const navigate = useNavigate();
 
     const handleMovieClick = (movieId) => {
         navigate(`/MovieDescription/${movieId}`); // 상세 페이지로 이동
-    };    
+    };
+
+    const sourceURL = (path) => `https://image.tmdb.org/t/p/w500${path}`;
 
     if (loading) return <div>로딩 중...</div>;
     if (error) return <div>오류 발생: {error.message}</div>;
+
+    // 영화가 없을 경우 메시지 출력
+    if (movies.length === 0) {
+        return <NoResultsMessage>검색 결과가 없습니다.</NoResultsMessage>;
+    }
 
     return (
         <MovieCardContainer>
