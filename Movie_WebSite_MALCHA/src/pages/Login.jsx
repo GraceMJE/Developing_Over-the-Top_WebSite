@@ -5,38 +5,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate } from 'react-router-dom'; // useNavigate 훅 import
 import { useAuth } from '../context/AuthContext'; // useAuth import
 import styled from 'styled-components';
-
-const LoginContainer = styled.div`
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-top: 5%;
-    height: 100vh;
-`;
-
-const Form = styled.form`
-    display: flex;
-    flex-direction: column;
-`;
-
-const LoginTitle = styled.h1`
-    margin-bottom: 18px;
-    font-family: monospace;
-    color: white;
-    font-size: 21px;
-    text-align: center;
-`;
-
-const LoginBox = styled.input`
-    width: 280px;
-    height: 16px;
-    border-radius: 11px;
-    border: 2px solid pink;
-    padding: 10px;
-    margin: 6px 0;
-    font-size: 12px;
-    font-family: monospace;
-`;
+import '../App.css';
 
 const LoginButton = styled.button`
     width: 302px;
@@ -51,7 +20,6 @@ const LoginButton = styled.button`
     margin-top: 2.7px;
     color: white;
 `;
-
 const ErrorMessage = styled.p`
     color: red;
     font-family: monospace;
@@ -119,12 +87,12 @@ const Login = () => {
     };
 
     return (
-        <LoginContainer>
-            <Form onSubmit={handleSubmit(onSubmit)}>
-                <LoginTitle>로그인</LoginTitle>
+        <div className='signLoginContainer'>
+            <form className='inputForm' onSubmit={handleSubmit(onSubmit)}>
+                <h1 className='signLoginTitle'>로그인</h1>
 
                 {/* 이메일 입력 */}
-                <LoginBox
+                <input className='signLoginInputBox'
                     type="email"
                     {...register('email')}
                     placeholder="이메일을 입력하세요!"
@@ -132,7 +100,7 @@ const Login = () => {
                 {errors.email && <ErrorMessage>{errors.email.message}</ErrorMessage>}
 
                 {/* 비밀번호 입력 */}
-                <LoginBox
+                <input className='signLoginInputBox'
                     type="password"
                     {...register('password')}
                     placeholder="비밀번호를 입력하세요!"
@@ -146,8 +114,8 @@ const Login = () => {
                 <LoginButton type="submit" disabled={!isValid || loading}>
                     {loading ? '로그인 중✨' : '로그인'}
                 </LoginButton>
-            </Form>
-        </LoginContainer>
+            </form>
+        </div>
     );
 };
 

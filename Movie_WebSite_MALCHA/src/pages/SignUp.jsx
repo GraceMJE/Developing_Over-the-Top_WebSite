@@ -4,40 +4,9 @@ import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate } from 'react-router-dom'; // useNavigate 훅 import
 import styled from 'styled-components';
+import '../App.css';
 
 // 스타일링
-const SignUpContainer = styled.div`
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-top: 5%;
-    height: 100vh; 
-`;
-
-const Form = styled.form`
-    display: flex;
-    flex-direction: column;
-`;
-
-const SignUpTitle = styled.h1`
-    margin-bottom: 18px;
-    font-family: monospace; 
-    color: white;
-    font-size: 21px;
-    text-align: center;
-`;
-
-const SignUpBox = styled.input`
-    width: 280px;
-    height: 16px;
-    border-radius: 11px;
-    border: 2px solid pink;
-    padding: 10px;
-    margin: 6px 0;
-    font-size: 12px;
-    font-family: monospace;
-`;
-
 const SignUpButton = styled.button`
     width: 302px;
     height: 42px;
@@ -51,7 +20,6 @@ const SignUpButton = styled.button`
     margin-top: 2.7px;
     color: white;
 `;
-
 const ErrorMessage = styled.p`
     color: red;
     font-family: monospace;
@@ -125,12 +93,12 @@ const SignUp = () => {
     };
 
     return (
-        <SignUpContainer>
-            <Form onSubmit={handleSubmit(onSubmit)}>
-                <SignUpTitle>회원가입</SignUpTitle>
+        <div className='signLoginContainer'>
+            <form className='inputForm' onSubmit={handleSubmit(onSubmit)}>
+                <h1 className='signLoginTitle'>회원가입</h1>
 
                 {/* 이메일 입력 */}
-                <SignUpBox
+                <input className='signLoginInputBox'
                     type="email"
                     {...register('email')}
                     placeholder="이메일을 입력하세요!"
@@ -138,7 +106,7 @@ const SignUp = () => {
                 {errors.email && <ErrorMessage>{errors.email.message}</ErrorMessage>}
 
                 {/* 비밀번호 입력 */}
-                <SignUpBox
+                <input className='signLoginInputBox'
                     type="password"
                     {...register('password')}
                     placeholder="비밀번호를 입력하세요!(8~16자)"
@@ -146,7 +114,7 @@ const SignUp = () => {
                 {errors.password && <ErrorMessage>{errors.password.message}</ErrorMessage>}
 
                 {/* 비밀번호 확인 입력 */}
-                <SignUpBox
+                <input className='signLoginInputBox'
                     type="password"
                     {...register('passwordCheck')}
                     placeholder="비밀번호를 다시 입력하세요!"
@@ -160,8 +128,8 @@ const SignUp = () => {
                 <SignUpButton type="submit" disabled={!isValid || loading}>
                     {loading ? '회원가입 중✨' : '회원가입'}
                 </SignUpButton>
-            </Form>
-        </SignUpContainer>
+            </form>
+        </div>
     );
 };
 
