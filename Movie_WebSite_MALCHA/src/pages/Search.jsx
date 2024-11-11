@@ -35,7 +35,7 @@ const SearchButton = styled.button`
   height: 43px;
   color: white;
   padding: 10px 20px;
-  margin: 15px 15px 15px 0;
+  margin: 14px 15px 16px 0;
   border: none;
   border-radius: 4px;
   cursor: pointer;
@@ -48,6 +48,7 @@ const SearchButton = styled.button`
 const Search = () => {
   const [searchQuery, setSearchQuery] = useState(''); // 검색어 상태
   const [fetchURL, setFetchURL] = useState(''); // 영화 데이터를 가져올 URL
+  const [debouncedQuery, setDebouncedQuery] = useState(''); // 디바운스된 검색어 상태
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -61,15 +62,35 @@ const Search = () => {
     }
   }, [location.search]);
 
+  // 디바운스 처리 (검색어 입력 후 일정 시간 후에 API 호출)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (debouncedQuery.trim()) {
+        setFetchURL(`https://api.themoviedb.org/3/search/movie?api_key=${myAPIkey}&query=${debouncedQuery}&language=ko-KR`);
+      }
+    }, 500); // 500ms 후에 API 호출
+
+    return () => clearTimeout(timer); // 타이머 정리
+  }, [debouncedQuery]);
+
   // 검색어 입력 변경
   const handleSearchChange = (e) => {
-    setSearchQuery(e.target.value);
+    const { value } = e.target;
+    setSearchQuery(value);
+    setDebouncedQuery(value); // 디바운스된 검색어 상태를 설정
   };
 
   // 검색 버튼 클릭 시 URL에 검색어 추가
   const handleSearchClick = () => {
     if (searchQuery.trim()) {
       navigate(`?query=${searchQuery}`); // URL에 query 파라미터 추가
+    }
+  };
+
+  // 엔터 키 입력 시 검색 실행
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      handleSearchClick(); // 엔터키가 눌리면 검색 실행
     }
   };
 
@@ -80,6 +101,7 @@ const Search = () => {
           type="text"
           value={searchQuery}
           onChange={handleSearchChange}
+          onKeyDown={handleKeyDown} // 엔터 키 입력을 처리
           placeholder="영화 제목을 입력해주세요..."
         />
         <SearchButton onClick={handleSearchClick}>검색</SearchButton>

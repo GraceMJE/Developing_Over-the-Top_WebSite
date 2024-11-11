@@ -32,7 +32,7 @@ const ErrorMessage = styled.p`
 const SignUp = () => {
     const navigate = useNavigate(); // useNavigate 훅 사용
 
-    // yup 스키마 정의
+    // yup 스키마 정의_유효성 checking
     const schema = yup.object().shape({
         email: yup
             .string()
