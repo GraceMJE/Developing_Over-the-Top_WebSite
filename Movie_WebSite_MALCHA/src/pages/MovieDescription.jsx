@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import styled from 'styled-components';
+import { useQuery } from '@tanstack/react-query'; // useQuery import
 import { myAPIkey } from '../myAPI';
 
 // 전체 틀
@@ -24,10 +25,7 @@ const Header = styled.div`
 const BackgroundImage = styled.div`
     background-image: url(${props => props.src});
     background-size: cover;
-
-    // ⭐새로 알게된 내용~! 배경이미지 위치조정!⭐
     background-position: 0px -250px;
-    
     border-radius: 15px;
     height: 100%;
     position: absolute;
@@ -36,6 +34,7 @@ const BackgroundImage = styled.div`
     top: 0;
     z-index: 1;
 `;
+
 // 그라데이션 효과를 위한 디자인코드
 const GradationEffect = styled.div`
     position: absolute;
@@ -50,10 +49,11 @@ const GradationEffect = styled.div`
 // 영화정보 글자를 담는 전체 큰 박스
 const DescriptionText = styled.div`
     position: absolute;
-    left: 20px; /* 왼쪽 정렬 */
-    z-index: 3; /* 텍스트를 최상단에 배치 */
+    left: 20px;
+    z-index: 3;
     text-align: left;
 `;
+
 const MovieTitle = styled.h1`
     font-family: monospace;
     font-size: 1.5em;
@@ -61,12 +61,14 @@ const MovieTitle = styled.h1`
     text-shadow: 1px 1px 2px black;
     margin-bottom: 9px;
 `;
+
 const MovieInformation = styled.h2`
     font-family: monospace;
     font-size: 1em;
     color: white;
     margin: 0;
 `;
+
 const MovieOverview = styled.p`
     font-family: monospace;
     font-size: 11px;
@@ -76,7 +78,6 @@ const MovieOverview = styled.p`
     margin-top: 15px;
 `;
 
-// 구분선(br을 이용하지 않고 스타일 지정에 용이하게 div로 줬다.)
 const Divider = styled.div`
     height: 0.5px;
     background-color: white;
@@ -84,7 +85,6 @@ const Divider = styled.div`
     margin-right: 66%;
 `;
 
-// 감독/배우 정보 등 부가정보를 담는 칸
 const EtcInformation = styled.div`
     display: flex;
     flex-direction: column;
@@ -93,6 +93,7 @@ const EtcInformation = styled.div`
     margin-right: 20px;
     font-size: 14px;
 `;
+
 const CastContainer = styled.div`
     display: grid;
     grid-template-columns: repeat(10, 1fr);
@@ -102,93 +103,86 @@ const CastContainer = styled.div`
     max-height: 250px;
 `;
 
-// 감독님 및 배역들 상세정보 칸_revision with 성원님
 const CastInformationContainer = styled.div`
     display: block;
-    // flex-direction: column;
-    // justify-content: center;
-    // color: white;
     margin-bottom: 30px;
-    // width: auto;
     text-align: center;
-`
+`;
+
 const CastMemberImage = styled.img`
-    // display: block;
     border-radius: 50%;
     border: 2px solid white;
     width: 70px;
     height: 70px;
-
-    // ⭐사진 비율유지하면서 크기 적용되기 위한 속성
     object-fit: cover;
-    
-    text-align: center;
-    background-image: url(${props => props.src});
     margin: 0 auto;
 `;
+
 const CastName = styled.p`
     font-size: 8px;
     letter-spacing: -0.3px;
     margin: 0;
     margin-top: 7px;
-    margin-left: 0;
-    // text-align: center;
 `;
+
 const CastRole = styled.p`
     font-size: 7px;
     color: gray;
     margin: 0;
     margin-top: 3px;
-    // text-align: center;
 `;
+
+const fetchMovieDetails = async (movieId) => {
+    const response = await axios.get(`https://api.themoviedb.org/3/movie/${movieId}?api_key=${myAPIkey}&language=ko-KR&append_to_response=credits`);
+    if (!response.data || !response.data.title) {
+        throw new Error("유효한 영화 정보를 찾을 수 없습니다.");
+    }
+    return response.data;
+};
+
+// cast 정보를 별도로 가져오는 함수 (별도로 useQuery를 사용)
+const fetchCastInfo = async (movieId) => {
+    const response = await axios.get(`https://api.themoviedb.org/3/movie/${movieId}/credits?api_key=${myAPIkey}`);
+    return response.data;
+};
 
 const MovieDescription = () => {
     const { movieId } = useParams();
-    const [movie, setMovie] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
 
-    useEffect(() => {
-        const fetchMovieDetails = async () => {
-            try {
-                // 🩷☁️ credit 추가(&append_to_response=credits) ☁️🩷
-                const response = await axios.get(`https://api.themoviedb.org/3/movie/${movieId}?api_key=${myAPIkey}&language=ko-KR&append_to_response=credits`);
-                if (!response.data || !response.data.title) {
-                    throw new Error("유효한 영화 정보를 찾을 수 없습니다.");
-                }
-                
-                setMovie(response.data);
-            } catch (err) {
-                setError(err);
-            } finally {
-                setLoading(false);
-            }
-        };
+    // 영화 데이터와 크레딧 데이터를 가져오기 위한 useQuery
+    const { data: movieData, error: movieError, isLoading: movieLoading, isError: movieIsError } = useQuery({
+        queryKey: ['movieDetails', movieId],
+        queryFn: () => fetchMovieDetails(movieId),
+    });
 
-        fetchMovieDetails();
-    }, [movieId]);
+    // cast 정보를 가져오기 위한 useQuery
+    const { data: castData, error: castError, isLoading: castLoading, isError: castIsError } = useQuery({
+        queryKey: ['castDetails', movieId],
+        queryFn: () => fetchCastInfo(movieId),
+    });
 
-    if (loading) return <div>로딩 중...</div>;
-    if (error) return <div>오류 발생: {error.message}</div>;
-    if (!movie) return <div>영화 정보를 찾을 수 없습니다.</div>;
+    // 로딩, 오류 처리
+    if (movieLoading || castLoading) return <div>로딩 중...</div>;
+    if (movieIsError) return <div>영화 정보 오류 발생: {movieError.message}</div>;
+    if (castIsError) return <div>배우 정보 오류 발생: {castError.message}</div>;
+    if (!movieData || !castData) return <div>영화 정보를 찾을 수 없습니다.</div>;
 
     // 감독님, 배우들 정보 확인
-    const directors = movie.credits?.crew?.filter(member => member.job === "Director") || [];
-    const cast = movie.credits?.cast || [];
+    const directors = movieData.credits?.crew?.filter(member => member.job === "Director") || [];
+    const cast = castData.cast || [];
 
     return (
         <Container>
             <Header>
                 {/* backdrop_path ➡️ 포스터 전체 보임 */}
-                <BackgroundImage src={`https://image.tmdb.org/t/p/original${movie.poster_path}`} />
+                <BackgroundImage src={`https://image.tmdb.org/t/p/original${movieData.poster_path}`} />
                 <GradationEffect />
                 <DescriptionText>
-                    {/* tagline 쓰면 소제목 ! */}
-                    <MovieTitle>{movie.title}</MovieTitle>
-                    <MovieInformation>📆 {movie.release_date}</MovieInformation>
-                    <MovieInformation>⭐ {movie.vote_average}</MovieInformation>
-                    <MovieInformation>⌚ {movie.runtime}분</MovieInformation>
-                    <MovieOverview>{movie.overview}</MovieOverview>
+                    <MovieTitle>{movieData.title}</MovieTitle>
+                    <MovieInformation>📆 {movieData.release_date}</MovieInformation>
+                    <MovieInformation>⭐ {movieData.vote_average}</MovieInformation>
+                    <MovieInformation>⌚ {movieData.runtime}분</MovieInformation>
+                    <MovieOverview>{movieData.overview}</MovieOverview>
                 </DescriptionText>
             </Header>
             <Divider />
