@@ -1,38 +1,43 @@
-import React from 'react';
+import React, { useState } from 'react';
 import CategoryMovieList from '../components/categoryMovieList';
-import { useInfiniteQuery } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import { myAPIkey } from '../myAPI';
 import { ClipLoader } from 'react-spinners'; // ClipLoader 임포트
 
 // 영화 데이터를 가져오는 함수
-const fetchNowPlayingMovies = async ({ pageParam = 1 }) => {
+const fetchNowPlayingMovies = async ({ queryKey }) => {
+  const [_key, { page, language }] = queryKey;
   const response = await axios.get(
-    `https://api.themoviedb.org/3/movie/now_playing?api_key=${myAPIkey}&language=ko-KR&page=${pageParam}`
+    `https://api.themoviedb.org/3/movie/now_playing?api_key=${myAPIkey}&language=${language}&page=${page}`
   );
   return response.data;
 };
 
 const NowPlaying = () => {
-  // React Query의 useInfiniteQuery 훅을 사용하여 데이터를 가져오기
-  const {
-    data,
-    isLoading,
-    isError,
-    error,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-  } = useInfiniteQuery({
-    queryKey: ['nowPlayingMovies'],
+  // 페이지 상태 관리
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // React Query의 useQuery 훅을 사용하여 데이터를 가져오기
+  const { 
+    data, 
+    isLoading, 
+    isError, 
+    error, 
+    isFetching 
+  } = useQuery({
+    queryKey: ['nowPlayingMovies', { page: currentPage, language: 'ko-KR' }], // queryKey에 페이지와 언어를 명확히 포함
     queryFn: fetchNowPlayingMovies,
-    getNextPageParam: (lastPage) => {
-      // 더 이상 데이터가 없으면 false 반환
-      return lastPage.page < lastPage.total_pages ? lastPage.page + 1 : false;
-    },
+    keepPreviousData: true,  // 이전 데이터를 유지하면서 새로운 데이터를 불러오도록 설정
   });
 
   const sourceURL = (path) => `https://image.tmdb.org/t/p/w500${path}`;
+
+  // 페이지 변경 함수
+  const handlePageChange = (newPage) => {
+    if (newPage < 1 || newPage > data.total_pages) return;  // 페이지 범위를 초과하지 않도록 처리
+    setCurrentPage(newPage);
+  };
 
   // 로딩 상태일 때 스피너 표시 (초기 데이터 로딩)
   if (isLoading) {
@@ -49,27 +54,29 @@ const NowPlaying = () => {
   }
 
   // 영화가 없을 경우 처리
-  if (!data || data.pages.length === 0) {
+  if (!data || data.results.length === 0) {
     return <div>검색 결과가 없습니다.</div>;
   }
 
-  // 모든 페이지의 데이터를 결합
-  const movies = data.pages.flatMap(page => page.results);
+  // 영화 데이터 가져오기
+  const movies = data.results;
+  const hasNextPage = currentPage < data.total_pages;
 
   return (
     <div>
       <CategoryMovieList
         movies={movies}
         sourceURL={sourceURL}
-        fetchNextPage={fetchNextPage}
-        isFetchingNextPage={isFetchingNextPage}
-        hasNextPage={hasNextPage}
+        isLoading={isFetching}
+        currentPage={currentPage} // 현재 페이지를 전달
+        onPageChange={handlePageChange} // 페이지 변경 함수 전달
+        hasNextPage={hasNextPage} // 다음 페이지가 있는지 여부 전달
       />
-      
+
       {/* 추가 페이지 로딩 중 스피너 표시 */}
-      {isFetchingNextPage && (
+      {isFetching && (
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '20px' }}>
-          <ClipLoader color="#ffffff" loading={isFetchingNextPage} size={30} />
+          <ClipLoader color="#ffffff" loading={isFetching} size={30} />
         </div>
       )}
     </div>

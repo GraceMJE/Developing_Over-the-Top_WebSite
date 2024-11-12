@@ -1,5 +1,5 @@
-import React, { useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom'; // useNavigate 훅을 추가
+import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import styled, { keyframes } from 'styled-components';
 
 // 깜빡이는 애니메이션 (Skeleton 효과)
@@ -17,7 +17,6 @@ const MovieCardContainer = styled.div`
   align-items: center;
 `;
 
-// Skeleton Loader 스타일
 const SkeletonImage = styled.div`
   width: 100px;
   height: 150px;
@@ -26,7 +25,6 @@ const SkeletonImage = styled.div`
   animation: ${skeletonAnimation} 1.5s infinite ease-in-out;
 `;
 
-// 실제 영화 포스터
 const MovieImage = styled.img`
   width: 100px;
   height: 150px;
@@ -66,39 +64,74 @@ const NoResultsMessage = styled.div`
   margin-top: 20px;
 `;
 
-const CategoryMovieList = ({ movies, sourceURL, isLoading, fetchNextPage, isFetchingNextPage, hasNextPage }) => {
-  const navigate = useNavigate(); // useNavigate 훅 추가
-  const containerRef = useRef(null); // 스크롤 이벤트를 감지할 컨테이너의 ref를 생성
+const PaginationContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+`;
 
-  // 영화 클릭 시 상세 페이지로 이동하는 함수
+const PaginationButton = styled.button`
+  width: 50px;
+  height: 30px;
+  margin: 0 5px;
+  font-size: 13px;
+  text-align: center;
+  cursor: ${(props) => (props.disabled ? 'not-allowed' : 'pointer')};
+  background-color: ${(props) => (props.disabled ? '#ccc' : '#FF007F')};
+  color: white;
+  border: none;
+  border-radius: 5px;
+
+  &:hover {
+    background-color: ${(props) => (props.disabled ? '#ccc' : 'pink')};
+  }
+`;
+
+const PaginationHomeButton = styled.button`
+  width: 50px;
+  height: 30px;
+  margin: 0 5px;
+  font-size: 13px;
+  text-align: center;
+  background-color: transparent;
+  color: white;
+  border: none;
+
+  &:hover {
+    color: grey;
+  }
+`;
+
+const PageNumber = styled.div`
+  font-family: monospace;
+  font-size: 12px;
+  color: white;
+  margin: 0 10px;
+`;
+
+const CategoryMovieList = ({
+  movies,
+  sourceURL,
+  isLoading,
+  currentPage,
+  onPageChange,
+  hasNextPage,
+}) => {
+  const navigate = useNavigate();
+
   const handleMovieClick = (movieId) => {
-    navigate(`/movieDescription/${movieId}`); // 상세 페이지로 이동, 경로 수정 필요
+    navigate(`/movieDescription/${movieId}`);
   };
 
-  // 스크롤 이벤트 핸들러: 사용자가 스크롤을 끝까지 내리면 더 많은 데이터를 불러옵니다.
-  const onScroll = () => {
-    const container = containerRef.current;
-    const bottom = container.getBoundingClientRect().bottom <= window.innerHeight;
-    // 스크롤이 바닥에 도달했고, 로딩 중이 아니며, 다음 페이지가 존재하는 경우
-    if (bottom && !isFetchingNextPage && hasNextPage) {
-      fetchNextPage();
-    }
-  };
-
-  // useEffect를 사용하여 스크롤 이벤트 리스너 추가 및 정리
+  // 페이지가 변경될 때 스크롤을 위로 올리는 함수
   useEffect(() => {
-    const currentContainer = containerRef.current;
-    currentContainer.addEventListener('scroll', onScroll);
-
-    return () => {
-      currentContainer.removeEventListener('scroll', onScroll);
-    };
-  }, [isFetchingNextPage, hasNextPage]);
+    window.scrollTo(0, 0);  // 페이지 전환 시 스크롤을 맨 위로
+  }, [currentPage]);
 
   if (isLoading) {
     return (
       <MovieCardContainer>
-        {/* 로딩 중일 때 Skeleton Loader 표시 */}
         {Array(8)
           .fill()
           .map((_, index) => (
@@ -117,29 +150,7 @@ const CategoryMovieList = ({ movies, sourceURL, isLoading, fetchNextPage, isFetc
   }
 
   return (
-    <div 
-      ref={containerRef} 
-      style={{
-        overflowY: 'auto',      // 스크롤 기능 유지
-        height: '100vh',        // 화면 전체 크기로 지정
-        scrollbarWidth: 'none', // Firefox에서 스크롤바 숨기기
-        msOverflowStyle: 'none',// IE에서 스크롤바 숨기기
-      }}
-    >
-      {/* 스크롤바를 숨기기 위한 스타일 */}
-      <style>
-        {`
-          /* Chrome, Safari, Opera */
-          div::-webkit-scrollbar {
-            display: none;
-          }
-          /* Firefox */
-          div {
-            scrollbar-width: none;
-          }
-        `}
-      </style>
-
+    <div style={{ paddingBottom: '50px' }}>
       <MovieCardContainer>
         {movies.map((movie) => (
           <CardView key={movie.id} onClick={() => handleMovieClick(movie.id)}>
@@ -150,8 +161,29 @@ const CategoryMovieList = ({ movies, sourceURL, isLoading, fetchNextPage, isFetc
         ))}
       </MovieCardContainer>
 
-      {/* 로딩 상태 표시 */}
-      {isFetchingNextPage && <div>로딩 중...</div>}
+      <PaginationContainer>
+        <PaginationHomeButton
+          onClick={() => onPageChange(1)}
+        >
+          🏠🫧
+        </PaginationHomeButton>
+
+        <PaginationButton
+          onClick={() => onPageChange(currentPage - 1)}
+          disabled={currentPage <= 1}
+        >
+          이전
+        </PaginationButton>
+        
+        <PageNumber>{currentPage} 페이지</PageNumber>
+
+        <PaginationButton
+          onClick={() => onPageChange(currentPage + 1)}
+          disabled={!hasNextPage}
+        >
+          다음
+        </PaginationButton>
+      </PaginationContainer>
     </div>
   );
 };
