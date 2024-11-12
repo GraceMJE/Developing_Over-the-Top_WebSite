@@ -15,6 +15,7 @@ const MovieCardContainer = styled.div`
   grid-template-columns: repeat(8, 1fr);
   justify-content: space-between;
   align-items: center;
+  height: 650px;
 `;
 
 const SkeletonImage = styled.div`
