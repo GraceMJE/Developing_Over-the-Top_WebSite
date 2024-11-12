@@ -1,7 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom'; // useNavigate 훅을 추가
 import styled, { keyframes } from 'styled-components';
-import { ClipLoader } from 'react-spinners'; // ClipLoader 임포트
 
 // 깜빡이는 애니메이션 (Skeleton 효과)
 const skeletonAnimation = keyframes`
@@ -96,10 +95,10 @@ const CategoryMovieList = ({ movies, sourceURL, isLoading, fetchNextPage, isFetc
     };
   }, [isFetchingNextPage, hasNextPage]);
 
-  // 로딩 중일 때 Skeleton Loader 표시
   if (isLoading) {
     return (
       <MovieCardContainer>
+        {/* 로딩 중일 때 Skeleton Loader 표시 */}
         {Array(8)
           .fill()
           .map((_, index) => (
@@ -151,12 +150,8 @@ const CategoryMovieList = ({ movies, sourceURL, isLoading, fetchNextPage, isFetc
         ))}
       </MovieCardContainer>
 
-      {/* 추가 페이지 로딩 중 스피너 표시 */}
-      {isFetchingNextPage && (
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '20px' }}>
-          <ClipLoader color="#ffffff" loading={isFetchingNextPage} size={50} />
-        </div>
-      )}
+      {/* 로딩 상태 표시 */}
+      {isFetchingNextPage && <div>로딩 중...</div>}
     </div>
   );
 };
