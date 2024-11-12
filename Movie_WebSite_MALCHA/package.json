@@ -23,6 +23,7 @@
     "react-native-svg": "^15.8.0",
     "react-query": "^3.39.3",
     "react-router-dom": "^6.28.0",
+    "react-spinners": "^0.14.1",
     "styled-components": "^6.1.13",
     "yup": "^1.4.0"
   },

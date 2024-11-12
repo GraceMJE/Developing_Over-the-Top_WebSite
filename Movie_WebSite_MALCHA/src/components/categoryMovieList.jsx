@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom'; // useNavigate 훅을 추가
 import styled, { keyframes } from 'styled-components';
+import { ClipLoader } from 'react-spinners'; // ClipLoader 임포트
 
+// 깜빡이는 애니메이션 (Skeleton 효과)
 const skeletonAnimation = keyframes`
   0% { opacity: 0.3; background-color: #e0e0e0; }
   50% { opacity: 0.7; background-color: #c0c0c0; }
@@ -16,6 +18,7 @@ const MovieCardContainer = styled.div`
   align-items: center;
 `;
 
+// Skeleton Loader 스타일
 const SkeletonImage = styled.div`
   width: 100px;
   height: 150px;
@@ -24,6 +27,7 @@ const SkeletonImage = styled.div`
   animation: ${skeletonAnimation} 1.5s infinite ease-in-out;
 `;
 
+// 실제 영화 포스터
 const MovieImage = styled.img`
   width: 100px;
   height: 150px;
@@ -63,29 +67,97 @@ const NoResultsMessage = styled.div`
   margin-top: 20px;
 `;
 
-const CategoryMovieList = ({ movies, sourceURL }) => {
+const CategoryMovieList = ({ movies, sourceURL, isLoading, fetchNextPage, isFetchingNextPage, hasNextPage }) => {
   const navigate = useNavigate(); // useNavigate 훅 추가
-
-  // 로딩 상태와 에러 처리가 NowPlaying에서 처리되므로 여기서는 그저 데이터만 전달받아 사용
-  if (!movies || movies.length === 0) {
-    return <NoResultsMessage>검색 결과가 없습니다.</NoResultsMessage>;
-  }
+  const containerRef = useRef(null); // 스크롤 이벤트를 감지할 컨테이너의 ref를 생성
 
   // 영화 클릭 시 상세 페이지로 이동하는 함수
   const handleMovieClick = (movieId) => {
     navigate(`/movieDescription/${movieId}`); // 상세 페이지로 이동, 경로 수정 필요
   };
 
+  // 스크롤 이벤트 핸들러: 사용자가 스크롤을 끝까지 내리면 더 많은 데이터를 불러옵니다.
+  const onScroll = () => {
+    const container = containerRef.current;
+    const bottom = container.getBoundingClientRect().bottom <= window.innerHeight;
+    // 스크롤이 바닥에 도달했고, 로딩 중이 아니며, 다음 페이지가 존재하는 경우
+    if (bottom && !isFetchingNextPage && hasNextPage) {
+      fetchNextPage();
+    }
+  };
+
+  // useEffect를 사용하여 스크롤 이벤트 리스너 추가 및 정리
+  useEffect(() => {
+    const currentContainer = containerRef.current;
+    currentContainer.addEventListener('scroll', onScroll);
+
+    return () => {
+      currentContainer.removeEventListener('scroll', onScroll);
+    };
+  }, [isFetchingNextPage, hasNextPage]);
+
+  // 로딩 중일 때 Skeleton Loader 표시
+  if (isLoading) {
+    return (
+      <MovieCardContainer>
+        {Array(8)
+          .fill()
+          .map((_, index) => (
+            <CardView key={index}>
+              <SkeletonImage />
+              <MovieTitle>로딩 중...</MovieTitle>
+              <ReleaseDate>로딩 중...</ReleaseDate>
+            </CardView>
+          ))}
+      </MovieCardContainer>
+    );
+  }
+
+  if (!movies || movies.length === 0) {
+    return <NoResultsMessage>검색 결과가 없습니다.</NoResultsMessage>;
+  }
+
   return (
-    <MovieCardContainer>
-      {movies.map((movie) => (
-        <CardView key={movie.id} onClick={() => handleMovieClick(movie.id)}>
-          <MovieImage src={sourceURL(movie.poster_path)} alt={movie.title} />
-          <MovieTitle>{movie.title}</MovieTitle>
-          <ReleaseDate>{movie.release_date}</ReleaseDate>
-        </CardView>
-      ))}
-    </MovieCardContainer>
+    <div 
+      ref={containerRef} 
+      style={{
+        overflowY: 'auto',      // 스크롤 기능 유지
+        height: '100vh',        // 화면 전체 크기로 지정
+        scrollbarWidth: 'none', // Firefox에서 스크롤바 숨기기
+        msOverflowStyle: 'none',// IE에서 스크롤바 숨기기
+      }}
+    >
+      {/* 스크롤바를 숨기기 위한 스타일 */}
+      <style>
+        {`
+          /* Chrome, Safari, Opera */
+          div::-webkit-scrollbar {
+            display: none;
+          }
+          /* Firefox */
+          div {
+            scrollbar-width: none;
+          }
+        `}
+      </style>
+
+      <MovieCardContainer>
+        {movies.map((movie) => (
+          <CardView key={movie.id} onClick={() => handleMovieClick(movie.id)}>
+            <MovieImage src={sourceURL(movie.poster_path)} alt={movie.title} />
+            <MovieTitle>{movie.title}</MovieTitle>
+            <ReleaseDate>{movie.release_date}</ReleaseDate>
+          </CardView>
+        ))}
+      </MovieCardContainer>
+
+      {/* 추가 페이지 로딩 중 스피너 표시 */}
+      {isFetchingNextPage && (
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '20px' }}>
+          <ClipLoader color="#ffffff" loading={isFetchingNextPage} size={50} />
+        </div>
+      )}
+    </div>
   );
 };
 
