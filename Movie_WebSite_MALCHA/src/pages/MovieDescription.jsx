@@ -104,9 +104,10 @@ const CastContainer = styled.div`
 `;
 
 const CastInformationContainer = styled.div`
-    display: block;
     margin-bottom: 30px;
     text-align: center;
+    display: flex;
+    flex-direction: column;
 `;
 
 const CastMemberImage = styled.img`
